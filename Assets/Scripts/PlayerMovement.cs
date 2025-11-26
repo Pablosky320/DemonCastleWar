@@ -8,7 +8,7 @@ public class PlayerMovement : MonoBehaviour
 
     public CharacterController controller;
 
-    public float speed;
+    public float speed = 12f;
     public float finalSpeed;
     public float acceleration;
     public float gravity = -9.81f;
@@ -49,6 +49,8 @@ public class PlayerMovement : MonoBehaviour
 
     void Crouch()
     {
-
+        
+        speed = 8f;
+        
     }
 }
