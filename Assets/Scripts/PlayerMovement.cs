@@ -8,9 +8,8 @@ public class PlayerMovement : MonoBehaviour
 
     public CharacterController controller;
 
-    public float speed = 12f;
+    public float speed;
     public float finalSpeed;
-    public float acceleration;
     public float gravity = -9.81f;
 
     public Transform groundCheck;
@@ -19,12 +18,23 @@ public class PlayerMovement : MonoBehaviour
 
     Vector3 velocity;
     bool isGrounded;
+    [SerializeField] bool isCrouching;
 
     // Update is called once per frame
     void Update()
     {
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
 
+        Movement();
+
+        while (Input.GetKeyDown(KeyCode.C))
+        {
+            isCrouching = true;
+        }
+    }
+
+    void Movement()
+    {
         if (isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
@@ -40,17 +50,12 @@ public class PlayerMovement : MonoBehaviour
         velocity.y += gravity * Time.deltaTime;
 
         controller.Move(velocity * Time.deltaTime);
-        
-        if (Input GetKeyDown)
-        {
-
-        }
     }
 
+
     void Crouch()
-    {
-        
-        speed = 8f;
-        
+    {   
+        isCrouching = true;
+        controller.height = 1.2f;
     }
 }
