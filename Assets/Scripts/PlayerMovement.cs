@@ -9,15 +9,24 @@ public class PlayerMovement : MonoBehaviour
     public CharacterController controller;
 
     public float speed;
+    public float dashSpeed = 25f;
     public float finalSpeed;
     public float gravity = -9.81f;
+    public float groundDistance = 0.4f;
+    public float dashCooldown = 0.4f;
 
     public Transform groundCheck;
-    public float groundDistance = 0.4f;
     public LayerMask groundMask;
 
+    private bool canDash;
+    [SerializeField] bool isDashing;
+    [SerializeField] bool isGrounded;
+
+    Vector3 moveDirection;
+    Vector3 dashDirection;
     Vector3 velocity;
-    bool isGrounded;
+    Vector3 move;
+
     [SerializeField] bool isCrouching;
 
     // Update is called once per frame
@@ -27,14 +36,32 @@ public class PlayerMovement : MonoBehaviour
 
         Movement();
 
-        while (Input.GetKeyDown(KeyCode.C))
+        if (isGrounded == true) 
         {
-            isCrouching = true;
+            if (Input.GetKeyDown(KeyCode.LeftControl))
+            {
+                isCrouching = true;
+                controller.height = 1.2f;
+                speed = 6f;
+            }
+            if (Input.GetKeyUp(KeyCode.LeftControl))
+            {
+                isCrouching = false;
+                controller.height = 2f;
+                speed = 12f;
+            }
+            if (Input.GetKeyDown(KeyCode.LeftShift))
+            {
+                if ()
+
+                    StartCoroutine(Dashing());
+            }
         }
     }
 
     void Movement()
     {
+
         if (isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
@@ -43,7 +70,7 @@ public class PlayerMovement : MonoBehaviour
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
 
-        Vector3 move = transform.right * x + transform.forward * z;
+        move = transform.right * x + transform.forward * z;
 
         controller.Move(move * speed * Time.deltaTime);
 
@@ -52,10 +79,25 @@ public class PlayerMovement : MonoBehaviour
         controller.Move(velocity * Time.deltaTime);
     }
 
+    void Run()
+    {
 
-    void Crouch()
-    {   
-        isCrouching = true;
-        controller.height = 1.2f;
     }
+
+    IEnumerator Dashing()
+    {
+        canDash = false;
+        isDashing = true;
+
+        dashDirection = move.normalized;
+        if (dashDirection.magnitude != 0f)
+        {
+            controller.Move(dashDirection * dashSpeed * Time.deltaTime);
+        }
+
+        isDashing = false;
+        yield return new WaitForSeconds(dashCooldown);
+        canDash = true;
+    }
+
 }
