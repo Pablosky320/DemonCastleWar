@@ -5,71 +5,63 @@ using Unity.VisualScripting;
 
 public class PlayerMovement : MonoBehaviour
 {
+    /* This floats are needed for movement, normally they would placed in the movement function but 
+    you need them called at the beggining so you can call them in each function */
+    float x;
+    float y; 
+    float z;
 
-    public CharacterController controller;
-
-    public float speed;
-    public float dashSpeed = 25f;
+    //This are basic statistics of the character
+    public float speed = 12;
+    public float runningSpeed = 20f;
+    public float dashSpeed = 30f;
     public float finalSpeed;
     public float gravity = -9.81f;
     public float groundDistance = 0.4f;
     public float dashCooldown = 0.4f;
+    float dashDuration = 0.8;
 
-    public Transform groundCheck;
-    public LayerMask groundMask;
 
-    private bool canDash;
-    [SerializeField] bool isDashing;
-    [SerializeField] bool isGrounded;
-
+    //every vector called
     Vector3 moveDirection;
     Vector3 dashDirection;
     Vector3 velocity;
     Vector3 move;
 
+    //gameobjects / layers needed
+    public CharacterController controller;
+    public Transform groundCheck;
+    public LayerMask groundMask;
+
+    //bools for when the character can do things
+    [SerializeField] bool canDash;
+    
+    [SerializeField] bool isRunning;
+    [SerializeField] bool isDashing;
+    [SerializeField] bool isGrounded;
     [SerializeField] bool isCrouching;
+
+
+    void Start() 
+    {
+        speed = 12f;
+    }
 
     // Update is called once per frame
     void Update()
     {
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
 
-        Movement();
+        float x = Input.GetAxis("Horizontal");
+        float z = Input.GetAxis("Vertical");
 
-        if (isGrounded == true) 
-        {
-            if (Input.GetKeyDown(KeyCode.LeftControl))
-            {
-                isCrouching = true;
-                controller.height = 1.2f;
-                speed = 6f;
-            }
-            if (Input.GetKeyUp(KeyCode.LeftControl))
-            {
-                isCrouching = false;
-                controller.height = 2f;
-                speed = 12f;
-            }
-            if (Input.GetKeyDown(KeyCode.LeftShift))
-            {
-                if ()
-
-                    StartCoroutine(Dashing());
-            }
-        }
-    }
-
-    void Movement()
-    {
-
+        // gravity, because the character doesn't use rigidbody
         if (isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
         }
 
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
-
+        //Movement equations
         move = transform.right * x + transform.forward * z;
 
         controller.Move(move * speed * Time.deltaTime);
@@ -77,12 +69,47 @@ public class PlayerMovement : MonoBehaviour
         velocity.y += gravity * Time.deltaTime;
 
         controller.Move(velocity * Time.deltaTime);
+
+        if (isGrounded == true) 
+        {
+            //This is the crouching logic
+            if (Input.GetKeyDown(KeyCode.LeftControl) && !isDashing)
+            {
+                isCrouching = true;
+                controller.height = 1.2f;
+                speed = 6f;
+            }
+            if (Input.GetKeyUp(KeyCode.LeftControl) && !isDashing)
+            {
+                isCrouching = false;
+                controller.height = 2f;
+                speed = 12f;
+            }
+            
+            //Running and dashing logic
+            if(Input.GetKeyDown(KeyCode.LeftShift))
+            {
+                //if not moving left or right and moving foward
+                if (!isDashing && x == 0 && z >= 0)
+                {
+                    isRunning = true;
+                    canDash = false;
+                    speed = 20f;
+                }
+                if (canDash && !isRunning)
+                {
+                    StartCoroutine(Dashing());
+                }
+            }
+            if(Input.GetKeyUp(KeyCode.LeftShift) && isRunning && !isDashing)
+            {
+                isRunning = false;
+                canDash = true;
+                speed = 12f;
+            }
+        }
     }
 
-    void Run()
-    {
-
-    }
 
     IEnumerator Dashing()
     {
@@ -90,14 +117,22 @@ public class PlayerMovement : MonoBehaviour
         isDashing = true;
 
         dashDirection = move.normalized;
+        
+        float elapsed = 0f;
+
         if (dashDirection.magnitude != 0f)
         {
-            controller.Move(dashDirection * dashSpeed * Time.deltaTime);
+            while (elapsed < dashDuration)
+            {
+                controller.Move(dashDirection * dashSpeed * Time.deltaTime);
+                elapsed += Time.deltaTime;             
+                yield return null; // espera un frame        
+            }
         }
 
         isDashing = false;
         yield return new WaitForSeconds(dashCooldown);
         canDash = true;
+        speed = 12;
     }
-
 }
