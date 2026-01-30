@@ -19,7 +19,7 @@ public class PlayerMovement : MonoBehaviour
     public float gravity = -9.81f;
     public float groundDistance = 0.4f;
     public float dashCooldown = 0.4f;
-    float dashDuration = 0.8;
+    float dashDuration = 0.8f;
 
 
     //every vector called
@@ -72,6 +72,27 @@ public class PlayerMovement : MonoBehaviour
         float z = Input.GetAxis("Vertical");
 
         // gravity, because the character doesn't use rigidbody
+
+        if (isGrounded)
+        {
+            if (isCrouching)
+            {
+                canDash = false;
+                canRun = false;
+            }
+            if (isRunning)
+            {
+                canDash = true;
+                canCrouch = true;
+            }
+            if (isDashing)
+            {
+                canRun = false;
+                canCrouch = false;
+            }
+        }
+
+
         if (isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
@@ -89,35 +110,25 @@ public class PlayerMovement : MonoBehaviour
         if (isGrounded == true) 
         {
             //This is the crouching logic
-            if (Input.GetKeyDown(KeyCode.LeftControl) && !isDashing)
+            if (Input.GetKeyDown(KeyCode.LeftControl) && canCrouch == true)
             {
                 isCrouching = true;
                 controller.height = 1.2f;
                 speed = 6f;
             }
-            if (Input.GetKeyUp(KeyCode.LeftControl) && !isDashing)
+            if (Input.GetKeyUp(KeyCode.LeftControl) && isCrouching == true)
             {
                 isCrouching = false;
                 controller.height = 2f;
                 speed = 12f;
             }
             
-            //Running and dashing logic
             if(Input.GetKeyDown(KeyCode.LeftShift))
             {
-                //if not moving left or right and moving foward
-                if (!isDashing && x == 0 && z >= 0)
-                {
-                    isRunning = true;
-                    canDash = false;
-                    speed = 20f;
-                }
-                if (canDash && !isRunning)
-                {
-                    StartCoroutine(Dashing());
-                }
+                isRunning = true;
+                speed = 20f;
             }
-            if(Input.GetKeyUp(KeyCode.LeftShift) && isRunning && !isDashing)
+            if(Input.GetKeyUp(KeyCode.LeftShift) && (isRunning == true))
             {
                 isRunning = false;
                 canDash = true;
@@ -129,6 +140,8 @@ public class PlayerMovement : MonoBehaviour
 
     IEnumerator Dashing()
     {
+        isRunning = false
+        isCrouching = false
         canDash = false;
         isDashing = true;
 
