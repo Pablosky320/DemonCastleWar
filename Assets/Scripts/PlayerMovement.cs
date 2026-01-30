@@ -34,8 +34,11 @@ public class PlayerMovement : MonoBehaviour
     public LayerMask groundMask;
 
     //bools for when the character can do things
+
     [SerializeField] bool canDash;
-    
+    [SerializeField] bool canRun;
+    [SerializeField] bool canCrouch;
+
     [SerializeField] bool isRunning;
     [SerializeField] bool isDashing;
     [SerializeField] bool isGrounded;
@@ -50,6 +53,19 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (isGrounded == true)
+        {
+            if (isRunning == true)
+
+
+            if (isDashing == true)
+                canRun == false
+
+            if (isCrouching == true)
+                canDash == false
+                canRun == false
+
+        }
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
 
         float x = Input.GetAxis("Horizontal");
